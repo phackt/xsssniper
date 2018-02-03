@@ -193,28 +193,31 @@ class Scanner(threading.Thread):
     def _performInjections(self, target):
         # Check every parameter 
         for k, v in target.params.iteritems():
-            pl = Payload(taint=True)
-            url, data = target.getPayloadedUrl(k, pl.payload)
-            
-            # In case of proxy 
-            if self.engine.getOption('http-proxy') is not None:
-                proxy = ProxyHandler({'http': self.engine.getOption('http-proxy')})
-                opener = build_opener(proxy)
-                install_opener(opener)
-            # Some headers
-            if self.engine.getOption('ua') is not None:
-                if self.engine.getOption('ua') is "RANDOM":
-                    headers = {'User-Agent': random.choice(USER_AGENTS)}
-                else:
-                    headers = {'User-Agent': self.engine.getOption('ua')}
-            else:
-                headers = {}
-            if self.engine.getOption("cookie") is not None:
-                headers["Cookie"] = self.engine.getOption("cookie")
 
-            # Build the request
-            req = Request(url, data, headers)
+            response = None
+            
             try:
+                pl = Payload(taint=True)
+                url, data = target.getPayloadedUrl(k, pl.payload)
+                
+                # In case of proxy 
+                if self.engine.getOption('http-proxy') is not None:
+                    proxy = ProxyHandler({'http': self.engine.getOption('http-proxy')})
+                    opener = build_opener(proxy)
+                    install_opener(opener)
+                # Some headers
+                if self.engine.getOption('ua') is not None:
+                    if self.engine.getOption('ua') is "RANDOM":
+                        headers = {'User-Agent': random.choice(USER_AGENTS)}
+                    else:
+                        headers = {'User-Agent': self.engine.getOption('ua')}
+                else:
+                    headers = {}
+                if self.engine.getOption("cookie") is not None:
+                    headers["Cookie"] = self.engine.getOption("cookie")
+
+                # Build the request
+                req = Request(url, data, headers)
                 to = 10 if self.engine.getOption('http-proxy') is None else 20
                 response = urlopen(req, timeout=to)
             except HTTPError, e:
@@ -232,31 +235,34 @@ class Scanner(threading.Thread):
                     self.results.append(Result(target, k, pl, r))
 
     def _checkStoredInjections(self):
-        for r in self.results:
-            # At this state injections in Result obj are not
-            # compacted yet so it will only be 1st injected param
-            url, data = r.target.getPayloadedUrl(r.first_param, "")
-            
-            # In case of proxy 
-            if self.engine.getOption('http-proxy') is not None:
-                proxy = ProxyHandler({'http': self.engine.getOption('http-proxy')})
-                opener = build_opener(proxy)
-                install_opener(opener)
-            
-            # Some headers
-            if self.engine.getOption('ua') is not None:
-                if self.engine.getOption('ua') is "RANDOM":
-                    headers = {'User-Agent': random.choice(USER_AGENTS)}
-                else:
-                    headers = {'User-Agent': self.engine.getOption('ua')}
-            else:
-                headers = {}
-            if self.engine.getOption("cookie") is not None:
-                headers["Cookie"] = self.engine.getOption("cookie")
+        for r in self.results: 
 
-            # Build the request
-            req = Request(url, data, headers)
+            response = None
+
             try:
+                    # At this state injections in Result obj are not
+                # compacted yet so it will only be 1st injected param
+                url, data = r.target.getPayloadedUrl(r.first_param, "")
+                
+                # In case of proxy 
+                if self.engine.getOption('http-proxy') is not None:
+                    proxy = ProxyHandler({'http': self.engine.getOption('http-proxy')})
+                    opener = build_opener(proxy)
+                    install_opener(opener)
+                
+                # Some headers
+                if self.engine.getOption('ua') is not None:
+                    if self.engine.getOption('ua') is "RANDOM":
+                        headers = {'User-Agent': random.choice(USER_AGENTS)}
+                    else:
+                        headers = {'User-Agent': self.engine.getOption('ua')}
+                else:
+                    headers = {}
+                if self.engine.getOption("cookie") is not None:
+                    headers["Cookie"] = self.engine.getOption("cookie")
+
+                # Build the request
+                req = Request(url, data, headers)
                 to = 10 if self.engine.getOption('http-proxy') is None else 20
                 response = urlopen(req, timeout=to)
             except HTTPError, e:

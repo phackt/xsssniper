@@ -53,7 +53,7 @@ class Crawler(threading.Thread):
         # If UA is RANDOM we need to refresh browser's headers
         if self.engine.getOption("ua") is "RANDOM": self._setHeaders()
         
-        try: self.browser.open(target.getAbsoluteUrl())
+        try: self.browser.open(target.getAbsoluteUrl(),timeout=10)
         except HTTPError, e:
             self._addError(e.code, target.getAbsoluteUrl())
             return False 
